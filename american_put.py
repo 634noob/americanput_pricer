@@ -10,7 +10,7 @@ class AmericanPutOption:
         self.spot = spot
         self.strike = strike
         self.vol = vol
-        print(self)
+        # print(self)
 
     def __str__(self):
         str_repr = "This is an american put option with the following attributes: \n"
