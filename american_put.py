@@ -5,12 +5,17 @@ import numpy as np
 
 class AmericanPutOption:
     def __init__(self, T, rf, spot, strike, vol):
-        self.T = T
-        self.rf = rf
-        self.spot = spot
-        self.strike = strike
-        self.vol = vol
-        # print(self)
+        try:
+            assert T > 0
+            self.T = float(T)
+            assert rf > 0
+            self.rf = float(rf)
+            self.spot = float(spot)
+            self.strike = float(strike)
+            assert vol > 0
+            self.vol = float(vol)
+        except ValueError:
+            print('Error passing Options parameters')
 
     def __str__(self):
         str_repr = "This is an american put option with the following attributes: \n"
@@ -58,6 +63,52 @@ class AmericanPutOption:
     def american_put_bbsr(self, n_step):
         return 2 * self.american_put_bbs(2 * n_step) - self.american_put_bbs(n_step)
 
+    def american_put_lsmc(self, n_step, n_sim):
+        dt = self.T / n_step
+        df = exp(-self.rf * dt)
+
+        def mcprice_matrix(seed=123):
+            """ Returns MC price matrix rows: time columns: price-path simulation """
+
+            np.random.seed(seed)
+            m_mcprice_matrix = np.zeros((n_step + 1, n_sim), dtype=np.float64)
+            m_mcprice_matrix[0, :] = self.spot
+            for t in range(1, n_step + 1):
+                brownian = np.random.standard_normal(n_sim // 2)
+                brownian = np.concatenate((brownian, -brownian))
+                m_mcprice_matrix[t, :] = (m_mcprice_matrix[t - 1, :] * np.exp((self.rf - self.vol ** 2 / 2.) * dt
+
+                                                                              + self.vol * brownian * np.sqrt(dt)))
+            return m_mcprice_matrix
+
+        m_mcprice_matrix = mcprice_matrix()
+
+        def MCpayoff():
+            """Returns the inner-value of American Option"""
+            payoff = np.maximum(self.strike - m_mcprice_matrix, np.zeros((n_step + 1, n_sim), dtype=np.float64))
+            return payoff
+
+        m_mcpayoff = MCpayoff()
+
+        def value_vector():
+            value_matrix = np.zeros_like(m_mcpayoff)
+            value_matrix[-1, :] = m_mcpayoff[-1, :]
+            for t in range(n_step - 1, 0, -1):
+                mask = m_mcprice_matrix[t, :] < self.strike
+                regression = np.polyfit(m_mcprice_matrix[t, mask], value_matrix[t + 1, mask] * df, 2)
+                continuation_value = np.polyval(regression, m_mcprice_matrix[t, mask])
+                value_matrix[t, mask] = np.where(m_mcpayoff[t, mask] > continuation_value, m_mcpayoff[t, mask],
+                                                 value_matrix[t + 1, mask] * df)
+                mask = ~mask
+                value_matrix[t, mask] = value_matrix[t + 1, mask] * df
+
+            return value_matrix[1, :] * df
+
+        def price():
+            return np.sum(value_vector()) / float(n_sim)
+
+        return price()
+
 
 if __name__ == "__main__":
     T = 0.5
@@ -71,3 +122,4 @@ if __name__ == "__main__":
     print("The price under binomial BS tree is: ".ljust(70), american_call.american_put_bbs(N))
     print("The price under binomial BS tree with Richardson extrapolation is: ".ljust(70),
           american_call.american_put_bbsr(N))
+    print("The price under lsmc is: ".ljust(70), american_call.american_put_lsmc(N, 100000))
