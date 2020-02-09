@@ -1,5 +1,4 @@
-from math import *
-from utils import *
+from src.utils import *
 import numpy as np
 
 

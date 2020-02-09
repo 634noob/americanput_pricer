@@ -4,6 +4,11 @@ from scipy.stats import norm
 
 
 def black(f, k, sigma, t, call):
+    """
+    blackshcoles formular
+    >>> black(100,100,0.2,1,1)
+    7.965567455405804
+    """
     stddev = sigma * sqrt(t)
     d1 = np.log(f / k) / stddev + 0.5 * stddev
     d2 = d1 - stddev
