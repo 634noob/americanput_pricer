@@ -1,6 +1,12 @@
-from src.american_put import *
+import sys
+import os
+print(os.path.abspath("../src"))
+sys.path.insert(1,os.path.abspath("../src"))
+print(sys.path)
 import numpy as np
+
 import matplotlib.pyplot as plt
+from american_put import *
 
 # Parameters
 T = 0.5
@@ -29,3 +35,5 @@ plt.hlines(y=3.345, linestyles='--', xmin=0, xmax=100)
 plt.legend(loc='upper right')
 
 plt.show()
+
+
