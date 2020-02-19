@@ -1,4 +1,5 @@
-from math import *
+from math import sqrt
+from math import exp
 import numpy as np
 from scipy.stats import norm
 
