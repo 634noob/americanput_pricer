@@ -1,6 +1,12 @@
-from american_put import *
+import sys
+import os
+print(os.path.abspath("../src"))
+sys.path.insert(1,os.path.abspath("../src"))
+print(sys.path)
 import numpy as np
+
 import matplotlib.pyplot as plt
+from american_put import *
 
 # Parameters
 T = 0.5
@@ -15,6 +21,8 @@ price_a = np.array([american_call.american_put_binomial(N) for N in n_steps])
 price_b = np.array([american_call.american_put_bbs(N) for N in n_steps])
 price_c = np.array([american_call.american_put_bbsr(N) for N in n_steps])
 
+# n_sims = np.array([n*100 for n in range(1001) if n > 0])
+# print(n_sims)
 # plt.subplot(3, 1, 1)
 plt.ylabel('American Put Price')
 plt.xlabel('N steps')
@@ -27,3 +35,5 @@ plt.hlines(y=3.345, linestyles='--', xmin=0, xmax=100)
 plt.legend(loc='upper right')
 
 plt.show()
+
+
